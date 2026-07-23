@@ -26,3 +26,15 @@ export const updateContactSchema = z.object({
     id: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid contact ID format'),
   }),
 });
+
+export const getContactsQuerySchema = z.object({
+  query: z.object({
+    page: z.string().regex(/^\d+$/).optional().default('1'),
+    limit: z.string().regex(/^\d+$/).optional().default('10'),
+    search: z.string().optional(),
+    category: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid category ID').optional(),
+    isFavorite: z.enum(['true', 'false']).optional(),
+    sort: z.enum(['firstName', 'createdAt', 'updatedAt']).optional().default('firstName'),
+    order: z.enum(['asc', 'desc']).optional().default('asc'),
+  }),
+});
