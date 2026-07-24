@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { isAxiosError } from 'axios';
 import { api } from '../services/api';
 import type { Contact, Pagination, DashboardStats } from '../types';
-import toast from 'react-hot-toast';
+import { showToast } from '../utils/showToast';
 
 interface FetchContactsParams {
   page?: number;
@@ -49,7 +49,7 @@ export const useContactStore = create<ContactState>((set, get) => ({
       });
     } catch (error: unknown) {
       set({ isLoading: false });
-      if (isAxiosError(error)) toast.error(error.response?.data?.message || 'Failed to fetch contacts');
+      if (isAxiosError(error)) showToast.error(error.response?.data?.message || 'Failed to fetch contacts');
     }
   },
 
@@ -60,7 +60,7 @@ export const useContactStore = create<ContactState>((set, get) => ({
       set({ stats: response.data.data.stats, isStatsLoading: false });
     } catch {
       set({ isStatsLoading: false });
-      toast.error('Failed to load dashboard statistics');
+      showToast.error('Failed to load dashboard statistics');
     }
   },
 
@@ -68,9 +68,9 @@ export const useContactStore = create<ContactState>((set, get) => ({
     try {
       await api.delete(`/contacts/${id}`);
       set({ contacts: get().contacts.filter((contact) => contact._id !== id) });
-      toast.success('Contact deleted');
+      showToast.success('Contact deleted');
     } catch (error: unknown) {
-      if (isAxiosError(error)) toast.error(error.response?.data?.message || 'Failed to delete contact');
+      if (isAxiosError(error)) showToast.error(error.response?.data?.message || 'Failed to delete contact');
       throw error;
     }
   },
@@ -85,9 +85,9 @@ export const useContactStore = create<ContactState>((set, get) => ({
       document.body.appendChild(link);
       link.click();
       link.parentNode?.removeChild(link);
-      toast.success('Export downloaded successfully');
+      showToast.success('Export downloaded successfully');
     } catch {
-      toast.error('Failed to export contacts. Ensure you have contacts to export.');
+      showToast.error('Failed to export contacts. Ensure you have contacts to export.');
     }
   },
 
@@ -98,9 +98,9 @@ export const useContactStore = create<ContactState>((set, get) => ({
       const response = await api.post('/contacts/import', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      toast.success(response.data.message || 'Contacts imported successfully');
+      showToast.success(response.data.message || 'Contacts imported successfully');
     } catch (error: unknown) {
-      if (isAxiosError(error)) toast.error(error.response?.data?.message || 'Failed to import contacts');
+      if (isAxiosError(error)) showToast.error(error.response?.data?.message || 'Failed to import contacts');
       throw error;
     }
   },

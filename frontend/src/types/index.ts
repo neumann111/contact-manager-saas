@@ -24,8 +24,9 @@ export interface RegisterCredentials {
 
 export interface Category {
   _id: string;
-  user: string;
   name: string;
+  description?: string; // <-- ADD THIS LINE
+  user: string;
   createdAt: string;
   updatedAt: string;
 }

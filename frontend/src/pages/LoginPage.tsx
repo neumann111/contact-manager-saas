@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BookUser, Mail, Lock } from 'lucide-react';
+import { BookUser, Mail, Lock, Sun, Moon } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { useAuthStore } from '../store/authStore';
+import { useTheme } from '../context/ThemeContext';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login, isLoading } = useAuthStore();
-  
+  const { theme, toggleTheme } = useTheme();
   const [formData, setFormData] = useState({ email: '', password: '' });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -22,26 +23,43 @@ export const LoginPage: React.FC = () => {
       await login(formData);
       navigate('/dashboard');
     } catch {
-      // Error is handled by the store's toast notification
+      // Errors handled by the store (toast)
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <div className="relative min-h-screen flex items-center justify-center p-4 bg-surface-secondary text-text transition-colors duration-200">
+      {/* Theme Toggle */}
+      <div className="absolute top-4 right-4">
+        <button
+          onClick={toggleTheme}
+          aria-label="Toggle Theme"
+          className="p-2.5 rounded-xl bg-surface border border-border text-text-muted hover:text-text hover:bg-surface-secondary shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500/50"
+        >
+          {theme === 'dark' ? <Sun className="w-5 h-5 text-warning" /> : <Moon className="w-5 h-5" />}
+        </button>
+      </div>
+
       <div className="w-full max-w-md space-y-8">
+        
+        {/* Header / Logo */}
         <div className="flex flex-col items-center text-center">
           <div className="p-3 bg-brand-600 rounded-xl text-white mb-4 shadow-lg shadow-brand-500/30">
             <BookUser className="w-8 h-8" />
           </div>
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+          <h2 className="text-3xl font-bold tracking-tight text-text">
             Welcome back
           </h2>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Please sign in to your account to continue
+          <p className="mt-2 text-sm text-text-muted">
+            Don't have an account?{' '}
+            <Link to="/register" className="font-semibold text-brand-600 dark:text-brand-400 hover:underline transition-colors">
+              Sign up for free
+            </Link>
           </p>
         </div>
 
-        <Card className="p-8">
+        {/* Form Card */}
+        <Card className="p-8 shadow-sm border-border bg-surface">
           <form onSubmit={handleSubmit} className="space-y-6">
             <Input
               label="Email Address"
@@ -55,12 +73,12 @@ export const LoginPage: React.FC = () => {
               onChange={handleChange}
             />
 
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                <label className="text-sm font-semibold text-text">
                   Password
                 </label>
-                <Link to="/forgot-password" className="text-xs font-medium text-brand-600 hover:text-brand-500">
+                <Link to="/forgot-password" className="text-sm font-medium text-brand-600 dark:text-brand-400 hover:underline transition-colors">
                   Forgot password?
                 </Link>
               </div>
@@ -76,17 +94,10 @@ export const LoginPage: React.FC = () => {
               />
             </div>
 
-            <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>
-              Sign in
+            <Button type="submit" className="w-full h-12 text-base shadow-sm" isLoading={isLoading}>
+              Sign in securely
             </Button>
           </form>
-
-          <div className="mt-6 text-center text-sm">
-            <span className="text-gray-600 dark:text-gray-400">Don't have an account? </span>
-            <Link to="/register" className="font-semibold text-brand-600 hover:text-brand-500 dark:text-brand-400 transition-colors">
-              Sign up now
-            </Link>
-          </div>
         </Card>
       </div>
     </div>

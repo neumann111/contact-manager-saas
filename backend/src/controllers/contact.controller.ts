@@ -10,6 +10,19 @@ import csv from 'csv-parser';
 export const createContact = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user!._id;
   const contactData = { ...req.body, user: userId };
+
+  // NEW: Check for duplicate phone number
+  if (contactData.phoneNumber && contactData.phoneNumber.trim() !== '') {
+    const existingContact = await Contact.findOne({ 
+      user: userId, 
+      phoneNumber: contactData.phoneNumber.trim() 
+    });
+
+    if (existingContact) {
+      throw new AppError('A contact with this phone number already exists.', 400);
+    }
+  }
+
   const contact = await Contact.create(contactData);
   res.status(201).json({ status: 'success', data: { contact } });
 });
@@ -59,8 +72,24 @@ export const getContactById = catchAsync(async (req: Request, res: Response) => 
 });
 
 export const updateContact = catchAsync(async (req: Request, res: Response) => {
+  const { phoneNumber } = req.body;
+  const contactId = req.params.id;
+
+  // NEW: Check for duplicate phone number (excluding the current contact)
+  if (phoneNumber && phoneNumber.trim() !== '') {
+    const existingContact = await Contact.findOne({
+      user: req.user!._id,
+      phoneNumber: phoneNumber.trim(),
+      _id: { $ne: contactId } 
+    });
+
+    if (existingContact) {
+      throw new AppError('Another contact with this phone number already exists.', 400);
+    }
+  }
+
   const contact = await Contact.findOneAndUpdate(
-    { _id: req.params.id, user: req.user!._id },
+    { _id: contactId, user: req.user!._id },
     req.body,
     { new: true, runValidators: true }
   ).populate('category', 'name');

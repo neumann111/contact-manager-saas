@@ -2,15 +2,14 @@ import { z } from 'zod';
 
 export const createCategorySchema = z.object({
   body: z.object({
-    name: z.string().min(2, 'Category name must be at least 2 characters').max(50),
+    name: z.string().min(2, 'Name must be at least 2 characters'),
+    description: z.string().max(500).optional(), // <-- ADD THIS
   }),
 });
 
 export const updateCategorySchema = z.object({
   body: z.object({
-    name: z.string().min(2, 'Category name must be at least 2 characters').max(50),
-  }),
-  params: z.object({
-    id: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid category ID format'),
+    name: z.string().min(2, 'Name must be at least 2 characters').optional(),
+    description: z.string().max(500).optional(), // <-- ADD THIS
   }),
 });

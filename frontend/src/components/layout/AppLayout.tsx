@@ -1,17 +1,35 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { Sidebar } from './Sidebar';
 import { Navbar } from './Navbar';
 
 export const AppLayout: React.FC = () => {
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-      <Sidebar />
-      <div className="flex flex-col flex-1 overflow-hidden">
+    <div className="min-h-screen bg-surface-secondary text-text transition-colors duration-300">
+      <div className="flex min-h-screen flex-col">
+        
+        {/* Top Navigation */}
         <Navbar />
-        <main className="flex-1 overflow-y-auto p-6">
-          <Outlet />
+
+        {/* Main Content */}
+        <main
+          className="
+            flex-1
+            px-4 py-6
+            sm:px-6
+            lg:px-10 lg:py-8
+          "
+        >
+          <div
+            className="
+              mx-auto
+              max-w-screen-2xl
+              animate-in fade-in duration-500
+            "
+          >
+            <Outlet />
+          </div>
         </main>
+
       </div>
     </div>
   );
