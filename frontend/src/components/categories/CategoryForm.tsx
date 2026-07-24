@@ -24,9 +24,11 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ initialData, onSucce
     
     try {
       if (initialData) {
-        await updateCategory(initialData._id, name);
+        // FIXED: Pass an object matching the expected store type
+        await updateCategory(initialData._id, { name });
       } else {
-        await createCategory(name);
+        // FIXED: Pass an object matching the expected store type
+        await createCategory({ name });
       }
       onSuccess();
     } catch {
