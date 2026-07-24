@@ -8,7 +8,7 @@ import hpp from 'hpp';
 import { errorHandler } from './middlewares/error.middleware';
 import { AppError } from './utils/AppError';
 import path from 'path';
-
+import { apiLimiter } from './middlewares/rateLimit.middleware';
 // Routes
 import authRoutes from './routes/auth.routes';
 import categoryRoutes from './routes/category.routes'; // NEW
@@ -26,6 +26,8 @@ app.use(compression());
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(morganMiddleware);
+
+app.use('/api', apiLimiter);
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'success', message: 'API is running optimally' });
