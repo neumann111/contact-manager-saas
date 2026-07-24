@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import Category from '../models/category.model';
 import { catchAsync } from '../utils/catchAsync';
 import { AppError } from '../utils/AppError';
+import Contact from '../models/contact.model';
 
 export const createCategory = catchAsync(async (req: Request, res: Response) => {
   const { name } = req.body;
@@ -42,7 +43,11 @@ export const deleteCategory = catchAsync(async (req: Request, res: Response) => 
   const category = await Category.findOneAndDelete({ _id: id, user: userId });
   if (!category) throw new AppError('Category not found', 404);
 
-  // Note: Future phase will need to remove this category reference from associated contacts
+  // NEW: Cascade update to remove this category from all contacts
+  await Contact.updateMany(
+    { category: id, user: userId },
+    { $set: { category: null } }
+  );
 
   res.status(204).json({ status: 'success', data: null });
 });

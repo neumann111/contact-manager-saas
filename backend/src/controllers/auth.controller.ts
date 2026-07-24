@@ -5,6 +5,7 @@ import { AppError } from '../utils/AppError';
 import { generateTokens, verifyRefreshToken } from '../utils/jwt';
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 
 export const register = catchAsync(async (req: Request, res: Response) => {
   const { firstName, lastName, email, password } = req.body;
@@ -120,6 +121,55 @@ export const updatePassword = catchAsync(async (req: Request, res: Response) => 
   res.status(200).json({ status: 'success', data: { user, accessToken, refreshToken } });
 });
 
+export const forgotPassword = catchAsync(async (req: Request, res: Response) => {
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    throw new AppError('There is no user with that email address.', 404);
+  }
+
+  const resetToken = user.createPasswordResetToken();
+  await user.save({ validateBeforeSave: false });
+
+  const resetURL = `${req.protocol}://${req.get('host')}/reset-password/${resetToken}`;
+
+  // SIMULATED EMAIL
+  console.log('\n======================================================');
+  console.log(`📩 MOCK EMAIL SENT TO: ${user.email}`);
+  console.log(`🔗 PASSWORD RESET LINK: http://localhost:3000/reset-password/${resetToken}`);
+  console.log('======================================================\n');
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Token sent to email (Check Server Console)!',
+  });
+});
+
+// NEW: Reset Password
+export const resetPassword = catchAsync(async (req: Request, res: Response) => {
+  const hashedToken = crypto
+    .createHash('sha256')
+    .update(req.params.token)
+    .digest('hex');
+
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    throw new AppError('Token is invalid or has expired', 400);
+  }
+
+  user.password = req.body.password;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+
+  const { accessToken, refreshToken } = generateTokens(user._id);
+
+  res.status(200).json({ status: 'success', data: { accessToken, refreshToken } });
+});
+
 export const uploadUserAvatar = catchAsync(async (req: Request, res: Response) => {
   if (!req.file) {
     throw new AppError('Please upload a valid image file', 400);
@@ -147,3 +197,4 @@ export const uploadUserAvatar = catchAsync(async (req: Request, res: Response) =
 
   res.status(200).json({ status: 'success', data: { user: updatedUser } });
 });
+

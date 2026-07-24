@@ -23,6 +23,8 @@ interface ContactState {
   fetchContacts: (params?: FetchContactsParams) => Promise<void>;
   fetchStats: () => Promise<void>;
   deleteContact: (id: string) => Promise<void>;
+  exportContacts: () => Promise<void>;
+  importContacts: (file: File) => Promise<void>;
 }
 
 export const useContactStore = create<ContactState>((set, get) => ({
@@ -35,14 +37,10 @@ export const useContactStore = create<ContactState>((set, get) => ({
   fetchContacts: async (params = {}) => {
     set({ isLoading: true });
     try {
-      // Convert params object to query string
       const searchParams = new URLSearchParams();
       Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== '') {
-          searchParams.append(key, String(value));
-        }
+        if (value !== undefined && value !== '') searchParams.append(key, String(value));
       });
-
       const response = await api.get(`/contacts?${searchParams.toString()}`);
       set({
         contacts: response.data.data.contacts,
@@ -60,22 +58,49 @@ export const useContactStore = create<ContactState>((set, get) => ({
     try {
       const response = await api.get('/contacts/stats/dashboard');
       set({ stats: response.data.data.stats, isStatsLoading: false });
-    } catch (error: unknown) {
+    } catch {
       set({ isStatsLoading: false });
-      if (isAxiosError(error)) toast.error('Failed to load dashboard statistics');
+      toast.error('Failed to load dashboard statistics');
     }
   },
 
   deleteContact: async (id: string) => {
     try {
       await api.delete(`/contacts/${id}`);
-      set({
-        contacts: get().contacts.filter((contact) => contact._id !== id),
-      });
-      // Optionally trigger fetchStats here if you want dashboard to update silently
+      set({ contacts: get().contacts.filter((contact) => contact._id !== id) });
       toast.success('Contact deleted');
     } catch (error: unknown) {
       if (isAxiosError(error)) toast.error(error.response?.data?.message || 'Failed to delete contact');
+      throw error;
+    }
+  },
+
+  exportContacts: async () => {
+    try {
+      const response = await api.get('/contacts/export', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'contacts_export.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      toast.success('Export downloaded successfully');
+    } catch {
+      toast.error('Failed to export contacts. Ensure you have contacts to export.');
+    }
+  },
+
+  importContacts: async (file: File) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await api.post('/contacts/import', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      toast.success(response.data.message || 'Contacts imported successfully');
+    } catch (error: unknown) {
+      if (isAxiosError(error)) toast.error(error.response?.data?.message || 'Failed to import contacts');
       throw error;
     }
   },

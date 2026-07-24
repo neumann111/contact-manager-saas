@@ -3,36 +3,47 @@ import path from 'path';
 import fs from 'fs';
 import { AppError } from '../utils/AppError';
 
-// Ensure uploads directory exists
-const uploadDir = path.join(process.cwd(), 'uploads/avatars');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// Ensure upload directories exist
+const avatarDir = path.join(process.cwd(), 'uploads/avatars');
+const csvDir = path.join(process.cwd(), 'uploads/csv');
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    // Create a unique filename: userId-timestamp.extension
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+if (!fs.existsSync(avatarDir)) fs.mkdirSync(avatarDir, { recursive: true });
+if (!fs.existsSync(csvDir)) fs.mkdirSync(csvDir, { recursive: true });
+
+// Avatar Storage Configuration
+const avatarStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, avatarDir),
+  filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
-    cb(null, `user-${req.user!._id}-${uniqueSuffix}${ext}`);
+    cb(null, `user-${req.user!._id}-${Date.now()}${ext}`);
   },
 });
 
-const multerFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  if (file.mimetype.startsWith('image/')) {
-    cb(null, true);
-  } else {
-    cb(new AppError('Not an image! Please upload only images.', 400));
-  }
-};
+// CSV Storage Configuration
+const csvStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, csvDir),
+  filename: (req, file, cb) => {
+    cb(null, `import-${req.user!._id}-${Date.now()}.csv`);
+  },
+});
 
 export const uploadAvatar = multer({
-  storage: storage,
-  fileFilter: multerFilter,
-  limits: {
-    fileSize: 2 * 1024 * 1024, // 2MB limit
+  storage: avatarStorage,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) cb(null, true);
+    else cb(new AppError('Not an image! Please upload only images.', 400));
+  },
+});
+
+export const uploadCSV = multer({
+  storage: csvStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'text/csv' || file.mimetype === 'application/vnd.ms-excel') {
+      cb(null, true);
+    } else {
+      cb(new AppError('Not a CSV file! Please upload only .csv files.', 400));
+    }
   },
 });

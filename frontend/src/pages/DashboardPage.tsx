@@ -50,7 +50,7 @@ export const DashboardPage: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Contacts Lists */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
             <div className="flex items-center mb-4">
               <Clock className="w-5 h-5 mr-2 text-gray-500" />
@@ -61,17 +61,39 @@ export const DashboardPage: React.FC = () => {
             ) : (
               <div className="divide-y divide-gray-100 dark:divide-gray-800">
                 {stats.recentlyAdded.map((contact) => (
-                  <div key={contact._id} className="py-3 flex items-center justify-between">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 rounded-full bg-brand-100 dark:bg-brand-900/50 flex items-center justify-center text-brand-700 dark:text-brand-300 font-bold mr-3">
-                        {contact.firstName.charAt(0)}{contact.lastName.charAt(0)}
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">
-                          {contact.firstName} {contact.lastName}
-                        </p>
-                        {contact.email && <p className="text-xs text-gray-500">{contact.email}</p>}
-                      </div>
+                  <div key={`added-${contact._id}`} className="py-3 flex items-center">
+                    <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/50 flex items-center justify-center text-brand-700 dark:text-brand-300 font-bold mr-3 text-xs shrink-0">
+                      {contact.firstName.charAt(0)}{contact.lastName.charAt(0)}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        {contact.firstName} {contact.lastName}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+
+          <Card>
+            <div className="flex items-center mb-4">
+              <Clock className="w-5 h-5 mr-2 text-brand-500" />
+              <h3 className="font-semibold text-lg text-gray-900 dark:text-white">Recently Updated</h3>
+            </div>
+            {stats.recentlyUpdated.length === 0 ? (
+              <p className="text-gray-500 text-sm">No contacts updated yet.</p>
+            ) : (
+              <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                {stats.recentlyUpdated.map((contact) => (
+                  <div key={`updated-${contact._id}`} className="py-3 flex items-center">
+                    <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center text-amber-700 dark:text-amber-300 font-bold mr-3 text-xs shrink-0">
+                      {contact.firstName.charAt(0)}{contact.lastName.charAt(0)}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        {contact.firstName} {contact.lastName}
+                      </p>
                     </div>
                   </div>
                 ))}

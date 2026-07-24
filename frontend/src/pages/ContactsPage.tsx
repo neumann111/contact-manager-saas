@@ -1,31 +1,49 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Search, Edit2, Trash2, Star, Users, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Star, Users, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { Spinner } from '../components/ui/Spinner';
 import { useContactStore } from '../store/contactStore';
+import { useCategoryStore } from '../store/categoryStore';
 import { ContactForm } from '../components/contacts/ContactForm';
 import { useDebounce } from '../hooks/useDebounce';
 import type { Contact } from '../types';
+import { Download, Upload } from 'lucide-react';
 
 export const ContactsPage: React.FC = () => {
-  const { contacts, pagination, isLoading, fetchContacts, deleteContact } = useContactStore();
+  const { contacts, pagination, isLoading, fetchContacts, deleteContact, importContacts, exportContacts } = useContactStore();
+  const { categories, fetchCategories } = useCategoryStore();
   
+  // Search & Filter State
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearch = useDebounce(searchTerm, 500);
+  const [filterCategory, setFilterCategory] = useState<string>('');
+  const [filterFavorite, setFilterFavorite] = useState<string>('');
   
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
 
-  // Fetch contacts whenever the debounced search OR page changes
-  useEffect(() => {
-    fetchContacts({ search: debouncedSearch, page, limit: 10 });
-  }, [debouncedSearch, page, fetchContacts]);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [isImporting, setIsImporting] = useState(false);
 
-  // OFFENDING useEffect REMOVED ENTIRELY FROM HERE
+  // Fetch categories for the filter dropdown
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
+  // Fetch contacts whenever search, filters, or page changes
+  useEffect(() => {
+    fetchContacts({ 
+      search: debouncedSearch, 
+      category: filterCategory,
+      isFavorite: filterFavorite === 'true' ? true : filterFavorite === 'false' ? false : undefined,
+      page, 
+      limit: 10 
+    });
+  }, [debouncedSearch, filterCategory, filterFavorite, page, fetchContacts]);
 
   const handleOpenCreate = () => {
     setEditingContact(null);
@@ -35,6 +53,19 @@ export const ContactsPage: React.FC = () => {
   const handleOpenEdit = (contact: Contact) => {
     setEditingContact(contact);
     setIsModalOpen(true);
+  };
+  
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsImporting(true);
+    try {
+      await importContacts(file);
+      fetchContacts({ search: debouncedSearch, page, limit: 10 });
+    } finally {
+      setIsImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -46,7 +77,13 @@ export const ContactsPage: React.FC = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingContact(null);
-    fetchContacts({ search: debouncedSearch, page, limit: 10 });
+    fetchContacts({ 
+      search: debouncedSearch, 
+      category: filterCategory,
+      isFavorite: filterFavorite === 'true' ? true : filterFavorite === 'false' ? false : undefined,
+      page, 
+      limit: 10 
+    });
   };
 
   return (
@@ -55,24 +92,58 @@ export const ContactsPage: React.FC = () => {
         <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
           Contacts Directory
         </h1>
-        <Button onClick={handleOpenCreate} className="shrink-0">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Contact
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <input type="file" ref={fileInputRef} onChange={handleImport} accept=".csv" className="hidden" />
+          
+          <Button variant="outline" onClick={() => fileInputRef.current?.click()} isLoading={isImporting}>
+            <Upload className="w-4 h-4 mr-2" /> Import
+          </Button>
+          <Button variant="outline" onClick={() => exportContacts()}>
+            <Download className="w-4 h-4 mr-2" /> Export
+          </Button>
+          <Button onClick={handleOpenCreate}>
+            <Plus className="w-4 h-4 mr-2" /> Add Contact
+          </Button>
+        </div>
       </div>
 
       <Card className="p-0 overflow-hidden">
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between gap-4 bg-gray-50/50 dark:bg-gray-800/50">
-          <div className="w-full max-w-md">
+        {/* NEW FILTER TOOLBAR */}
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col md:flex-row items-center justify-between gap-4 bg-gray-50/50 dark:bg-gray-800/50">
+          <div className="w-full md:w-1/2">
             <Input
               placeholder="Search by name, email, or company..."
               icon={<Search className="w-4 h-4" />}
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
-                setPage(1); // <--- We now reset the page instantly in the event handler!
+                setPage(1); 
               }}
             />
+          </div>
+          <div className="w-full md:w-auto flex items-center gap-3">
+            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+              <Filter className="w-4 h-4 mr-2" /> Filters:
+            </div>
+            <select
+              value={filterCategory}
+              onChange={(e) => { setFilterCategory(e.target.value); setPage(1); }}
+              className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+            >
+              <option value="">All Categories</option>
+              {categories.map(cat => (
+                <option key={cat._id} value={cat._id}>{cat.name}</option>
+              ))}
+            </select>
+            <select
+              value={filterFavorite}
+              onChange={(e) => { setFilterFavorite(e.target.value); setPage(1); }}
+              className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+            >
+              <option value="">All Status</option>
+              <option value="true">Favorites Only</option>
+              <option value="false">Non-Favorites</option>
+            </select>
           </div>
         </div>
 
@@ -88,7 +159,7 @@ export const ContactsPage: React.FC = () => {
               </div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">No contacts found</h3>
               <p className="text-gray-500 dark:text-gray-400 text-sm">
-                {searchTerm ? `No results for "${searchTerm}"` : "You haven't added any contacts yet."}
+                Adjust your search or filters, or add a new contact.
               </p>
             </div>
           ) : (

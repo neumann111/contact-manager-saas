@@ -2,14 +2,18 @@ import { Router } from 'express';
 import * as contactController from '../controllers/contact.controller';
 import { validate } from '../middlewares/validate.middleware';
 import { protect } from '../middlewares/auth.middleware';
+import { uploadCSV } from '../middlewares/upload.middleware';
 import { createContactSchema, updateContactSchema, getContactsQuerySchema } from '../validations/contact.validation';
 
 const router = Router();
 
 router.use(protect);
 
-// IMPORTANT: Static routes must come before parameterized routes (/:id)
 router.get('/stats/dashboard', contactController.getDashboardStats);
+
+// NEW: Import/Export Routes
+router.get('/export', contactController.exportContacts);
+router.post('/import', uploadCSV.single('file'), contactController.importContacts);
 
 router
   .route('/')
