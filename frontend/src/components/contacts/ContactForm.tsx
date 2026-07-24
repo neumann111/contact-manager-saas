@@ -4,7 +4,7 @@ import { Button } from '../ui/Button';
 import { useCategoryStore } from '../../store/categoryStore';
 import { api } from '../../services/api';
 import type { Contact } from '../../types';
-import toast from 'react-hot-toast';
+import { showToast } from '../../utils/showToast';
 import { isAxiosError } from 'axios';
 import { Star } from 'lucide-react';
 
@@ -29,7 +29,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ initialData, onSuccess
   });
 
   useEffect(() => {
-    fetchCategories(); // Ensure categories dropdown is populated
+    fetchCategories(); 
   }, [fetchCategories]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -55,15 +55,15 @@ export const ContactForm: React.FC<ContactFormProps> = ({ initialData, onSuccess
 
       if (initialData) {
         await api.put(`/contacts/${initialData._id}`, payload);
-        toast.success('Contact updated');
+        showToast.success('Contact updated');
       } else {
         await api.post('/contacts', payload);
-        toast.success('Contact created');
+        showToast.success('Contact created');
       }
       onSuccess();
     } catch (error: unknown) {
       if (isAxiosError(error)) {
-        toast.error(error.response?.data?.message || 'Failed to save contact');
+        showToast.error(error.response?.data?.message || 'Failed to save contact');
       }
     } finally {
       setIsSubmitting(false);
@@ -72,24 +72,58 @@ export const ContactForm: React.FC<ContactFormProps> = ({ initialData, onSuccess
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <Input label="First Name" name="firstName" required value={formData.firstName} onChange={handleChange} />
-        <Input label="Last Name" name="lastName" required value={formData.lastName} onChange={handleChange} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Input 
+          label="First Name" 
+          name="firstName" 
+          required 
+          value={formData.firstName} 
+          onChange={handleChange} 
+          className="bg-surface border-border focus:border-brand-500"
+        />
+        <Input 
+          label="Last Name" 
+          name="lastName" 
+          required 
+          value={formData.lastName} 
+          onChange={handleChange} 
+          className="bg-surface border-border focus:border-brand-500"
+        />
       </div>
       
-      <Input label="Email Address" name="email" type="email" value={formData.email} onChange={handleChange} />
-      <Input label="Phone Number" name="phoneNumber" type="tel" value={formData.phoneNumber} onChange={handleChange} />
-      <Input label="Company" name="company" value={formData.company} onChange={handleChange} />
+      <Input 
+        label="Email Address" 
+        name="email" 
+        type="email" 
+        value={formData.email} 
+        onChange={handleChange} 
+        className="bg-surface border-border focus:border-brand-500"
+      />
+      <Input 
+        label="Phone Number" 
+        name="phoneNumber" 
+        type="tel" 
+        value={formData.phoneNumber} 
+        onChange={handleChange} 
+        className="bg-surface border-border focus:border-brand-500"
+      />
+      <Input 
+        label="Company" 
+        name="company" 
+        value={formData.company} 
+        onChange={handleChange} 
+        className="bg-surface border-border focus:border-brand-500"
+      />
       
-      <div className="space-y-1">
-        <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+      <div className="space-y-1.5">
+        <label className="block text-xs font-semibold uppercase tracking-wider text-text-muted">
           Category
         </label>
         <select
           name="category"
           value={formData.category}
           onChange={handleChange}
-          className="block w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+          className="block w-full rounded-xl border border-border bg-surface text-text px-3 py-2.5 text-sm shadow-sm transition-colors hover:border-border-strong focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 cursor-pointer"
         >
           <option value="">No Category</option>
           {categories.map((cat) => (
@@ -100,26 +134,35 @@ export const ContactForm: React.FC<ContactFormProps> = ({ initialData, onSuccess
         </select>
       </div>
 
-      <div className="flex items-center mt-2">
+      <div className="flex items-center mt-3">
         <input
           type="checkbox"
           id="isFavorite"
           name="isFavorite"
           checked={formData.isFavorite}
           onChange={handleChange}
-          className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+          className="h-4 w-4 rounded border-border text-brand-600 focus:ring-brand-500/50 cursor-pointer"
         />
-        <label htmlFor="isFavorite" className="ml-2 flex items-center text-sm text-gray-700 dark:text-gray-300">
-          <Star className={`w-4 h-4 mr-1 ${formData.isFavorite ? 'fill-amber-400 text-amber-400' : 'text-gray-400'}`} />
+        <label htmlFor="isFavorite" className="ml-2 flex items-center text-sm text-text font-medium cursor-pointer">
+          <Star className={`w-4 h-4 mr-1.5 ${formData.isFavorite ? 'fill-warning text-warning' : 'text-text-muted'}`} />
           Mark as Favorite
         </label>
       </div>
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
-        <Button type="button" variant="ghost" onClick={onCancel}>
+      <div className="flex justify-end gap-3 pt-4 border-t border-border">
+        <Button 
+          type="button" 
+          variant="ghost" 
+          onClick={onCancel}
+          className="hover:bg-surface-secondary text-text-muted hover:text-text transition-colors"
+        >
           Cancel
         </Button>
-        <Button type="submit" isLoading={isSubmitting}>
+        <Button 
+          type="submit" 
+          isLoading={isSubmitting}
+          className="bg-brand-600 hover:bg-brand-500 text-white border-transparent shadow-sm"
+        >
           {initialData ? 'Save Changes' : 'Create Contact'}
         </Button>
       </div>

@@ -9,15 +9,15 @@ export const App: React.FC = () => {
     <ThemeProvider>
       <BrowserRouter>
         <AppRoutes />
-        <Toaster 
+        {/* Global Toast Notification Container */}
+        <Toaster
           position="top-right"
-          toastOptions={{
-            duration: 3000,
-            style: {
-              background: '#333',
-              color: '#fff',
-            },
-          }} 
+          reverseOrder={false}
+          gutter={12}
+          containerStyle={{
+            top: 20,
+            right: 20,
+          }}
         />
       </BrowserRouter>
     </ThemeProvider>

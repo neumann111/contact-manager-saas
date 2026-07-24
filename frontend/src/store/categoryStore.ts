@@ -2,14 +2,14 @@ import { create } from 'zustand';
 import { isAxiosError } from 'axios';
 import { api } from '../services/api';
 import type { Category } from '../types';
-import toast from 'react-hot-toast';
+import { showToast } from '../utils/showToast';
 
 interface CategoryState {
   categories: Category[];
   isLoading: boolean;
   fetchCategories: () => Promise<void>;
-  createCategory: (name: string) => Promise<void>;
-  updateCategory: (id: string, name: string) => Promise<void>;
+  createCategory: (data: { name: string; description?: string }) => Promise<void>;
+  updateCategory: (id: string, data: { name?: string; description?: string }) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
 }
 
@@ -25,33 +25,35 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
     } catch (error: unknown) {
       set({ isLoading: false });
       if (isAxiosError(error)) {
-        toast.error(error.response?.data?.message || 'Failed to fetch categories');
+        showToast.error(error.response?.data?.message || 'Failed to fetch categories');
       }
     }
   },
 
-  createCategory: async (name: string) => {
+  // UPDATED: Now accepts 'data' object instead of just 'name' string
+  createCategory: async (data) => {
     try {
-      const response = await api.post('/categories', { name });
+      const response = await api.post('/categories', data);
       const newCategory = response.data.data.category;
       set({ categories: [...get().categories, newCategory] });
-      toast.success('Category created');
+      showToast.success('Category created');
     } catch (error: unknown) {
-      if (isAxiosError(error)) toast.error(error.response?.data?.message || 'Failed to create category');
+      if (isAxiosError(error)) showToast.error(error.response?.data?.message || 'Failed to create category');
       throw error;
     }
   },
 
-  updateCategory: async (id: string, name: string) => {
+  // UPDATED: Now accepts 'id' and 'data' object
+  updateCategory: async (id, data) => {
     try {
-      const response = await api.put(`/categories/${id}`, { name });
+      const response = await api.put(`/categories/${id}`, data);
       const updatedCategory = response.data.data.category;
       set({
         categories: get().categories.map((cat) => (cat._id === id ? updatedCategory : cat)),
       });
-      toast.success('Category updated');
+      showToast.success('Category updated');
     } catch (error: unknown) {
-      if (isAxiosError(error)) toast.error(error.response?.data?.message || 'Failed to update category');
+      if (isAxiosError(error)) showToast.error(error.response?.data?.message || 'Failed to update category');
       throw error;
     }
   },
@@ -62,9 +64,9 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
       set({
         categories: get().categories.filter((cat) => cat._id !== id),
       });
-      toast.success('Category deleted');
+      showToast.success('Category deleted');
     } catch (error: unknown) {
-      if (isAxiosError(error)) toast.error(error.response?.data?.message || 'Failed to delete category');
+      if (isAxiosError(error)) showToast.error(error.response?.data?.message || 'Failed to delete category');
       throw error;
     }
   },

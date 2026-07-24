@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import { isAxiosError } from 'axios';
 import { api } from '../services/api';
 import type { User, LoginCredentials, RegisterCredentials } from '../types';
-import toast from 'react-hot-toast';
+// Removed default import, using your custom showToast file
+import { showToast } from '../utils/showToast';
 
 interface AuthState {
   user: User | null;
@@ -34,10 +35,10 @@ export const useAuthStore = create<AuthState>((set) => ({
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('refreshToken', refreshToken);
       set({ user, isAuthenticated: true, isLoading: false });
-      toast.success('Welcome back!');
+      showToast.success('Welcome back!');
     } catch (error: unknown) {
       set({ isLoading: false });
-      if (isAxiosError(error)) toast.error(error.response?.data?.message || 'Failed to login');
+      if (isAxiosError(error)) showToast.error(error.response?.data?.message || 'Failed to login');
       throw error;
     }
   },
@@ -50,10 +51,10 @@ export const useAuthStore = create<AuthState>((set) => ({
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('refreshToken', refreshToken);
       set({ user, isAuthenticated: true, isLoading: false });
-      toast.success('Account created successfully!');
+      showToast.success('Account created successfully!');
     } catch (error: unknown) {
       set({ isLoading: false });
-      if (isAxiosError(error)) toast.error(error.response?.data?.message || 'Failed to register');
+      if (isAxiosError(error)) showToast.error(error.response?.data?.message || 'Failed to register');
       throw error;
     }
   },
@@ -62,7 +63,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     set({ user: null, isAuthenticated: false });
-    toast.success('Logged out successfully');
+    showToast.success('Logged out successfully');
   },
 
   checkAuth: async () => {
@@ -83,9 +84,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const response = await api.put('/auth/profile', data);
       set({ user: response.data.data.user });
-      toast.success('Profile updated successfully');
+      showToast.success('Profile updated successfully');
     } catch (error: unknown) {
-      if (isAxiosError(error)) toast.error(error.response?.data?.message || 'Failed to update profile');
+      if (isAxiosError(error)) showToast.error(error.response?.data?.message || 'Failed to update profile');
       throw error;
     }
   },
@@ -96,9 +97,9 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { accessToken, refreshToken } = response.data.data;
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('refreshToken', refreshToken);
-      toast.success('Password updated successfully');
+      showToast.success('Password updated successfully');
     } catch (error: unknown) {
-      if (isAxiosError(error)) toast.error(error.response?.data?.message || 'Failed to update password');
+      if (isAxiosError(error)) showToast.error(error.response?.data?.message || 'Failed to update password');
       throw error;
     }
   },
@@ -111,9 +112,9 @@ export const useAuthStore = create<AuthState>((set) => ({
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       set({ user: response.data.data.user });
-      toast.success('Avatar updated successfully');
+      showToast.success('Avatar updated successfully');
     } catch (error: unknown) {
-      if (isAxiosError(error)) toast.error(error.response?.data?.message || 'Failed to upload avatar');
+      if (isAxiosError(error)) showToast.error(error.response?.data?.message || 'Failed to upload avatar');
       throw error;
     }
   },
@@ -122,9 +123,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true });
     try {
       await api.post('/auth/forgot-password', { email });
-      toast.success('Password reset link sent to your email.');
+      showToast.success('Password reset link sent to your email.');
     } catch (error: unknown) {
-      if (isAxiosError(error)) toast.error(error.response?.data?.message || 'Failed to send reset link');
+      if (isAxiosError(error)) showToast.error(error.response?.data?.message || 'Failed to send reset link');
       throw error;
     } finally {
       set({ isLoading: false });
@@ -145,9 +146,9 @@ export const useAuthStore = create<AuthState>((set) => ({
       
       // 3. Update global state and fire the success toast
       set({ isAuthenticated: true, user: userResponse.data.data.user });
-      toast.success('Password reset successfully! Welcome back.');
+      showToast.success('Password reset successfully! Welcome back.');
     } catch (error: unknown) {
-      if (isAxiosError(error)) toast.error(error.response?.data?.message || 'Failed to reset password');
+      if (isAxiosError(error)) showToast.error(error.response?.data?.message || 'Failed to reset password');
       throw error;
     } finally {
       set({ isLoading: false });
