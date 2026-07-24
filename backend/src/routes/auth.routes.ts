@@ -10,16 +10,17 @@ import {
   resetPasswordSchema,
   updatePasswordSchema
 } from '../validations/auth.validation';
+import { authLimiter } from '../middlewares/rateLimit.middleware';
 
 const router = Router();
 
-router.post('/register', validate(registerSchema), authController.register);
-router.post('/login', validate(loginSchema), authController.login);
-router.post('/refresh', validate(refreshTokenSchema), authController.refresh);
+// Public Authentication Routes (Protected by strict rate limiting + input validation)
+router.post('/register', authLimiter, validate(registerSchema), authController.register);
+router.post('/login', authLimiter, validate(loginSchema), authController.login);
+router.post('/refresh', authLimiter, validate(refreshTokenSchema), authController.refresh);
 
-router.post('/forgot-password', authController.forgotPassword);
-// ADDED VALIDATION HERE:
-router.patch('/reset-password/:token', validate(resetPasswordSchema), authController.resetPassword);
+router.post('/forgot-password', authLimiter, authController.forgotPassword);
+router.patch('/reset-password/:token', authLimiter, validate(resetPasswordSchema), authController.resetPassword);
 
 // Protected routes
 router.use(protect);

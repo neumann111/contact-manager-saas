@@ -29,7 +29,7 @@ Contact Manager is a full-stack, enterprise-ready application designed to stream
 - 📱 **Fully Responsive Design:** Optimized layouts providing a native-like experience across mobile, tablet, and desktop viewports.
 - 🔒 **Password Reset via Email:** Secure tokenized workflows for seamless account recovery.
 - 📦 **Robust Logging & Error Handling:** Winston-powered backend logging with Morgan HTTP request tracking and structured JSON error responses.
-
+- 🛡️ **Advanced Rate Limiting:** Tiered IP-based rate limiting via `express-rate-limit` to protect authentication and API endpoints against brute-force and DoS attacks.
 ---
 
 ## 🛠️ Technology Stack
@@ -49,6 +49,7 @@ Contact Manager is a full-stack, enterprise-ready application designed to stream
 | **MongoDB / Mongoose** | NoSQL database for flexible data modeling, validation schemas, and relationship indexing. |
 | **JWT (jsonwebtoken)** | Secure, stateless authentication via short-lived access tokens and refresh tokens. |
 | **Winston & Morgan** | Production-grade logging system capturing stack traces, error contexts, and real-time HTTP request performance. |
+| **Express Rate Limit** | IP-based request throttling protecting authentication and general API endpoints from brute-force and flood attacks. |
 
 ## 🏗️ Architecture & Technical Documentation
 
@@ -139,14 +140,15 @@ The project follows a monorepo structure with separate frontend and backend appl
 contact-manager-saas
 │
 ├── backend
+│   ├── logs                  # Winston production logs (error.log, combined.log)
 │   ├── src
-│   │   ├── config          # Database and environment configuration
-│   │   ├── controllers     # Request handlers
-│   │   ├── middlewares     # Authentication, validation, error handling
-│   │   ├── models          # Database schemas
-│   │   ├── routes          # API routes
-│   │   ├── utils           # Helper utilities
-│   │   ├── validations     # Request validation schemas
+│   │   ├── config            # Database and environment configuration
+│   │   ├── controllers       # Request handlers
+│   │   ├── middlewares       # Auth, validation, rate limiting, error handling, morgan
+│   │   ├── models            # Database schemas
+│   │   ├── routes            # API routes
+│   │   ├── utils             # Helper utilities (Winston logger, AppError)
+│   │   ├── validations       # Request validation schemas
 │   │   ├── app.ts
 │   │   └── server.ts
 │   │
@@ -155,19 +157,19 @@ contact-manager-saas
 │
 ├── frontend
 │   ├── src
-│   │   ├── components     # Reusable UI components
-│   │   ├── pages          # Application pages
-│   │   ├── routes         # Route definitions
-│   │   ├── services       # API communication
-│   │   ├── store          # Global state management
-│   │   ├── hooks          # Custom React hooks
-│   │   ├── context        # React contexts
-│   │   └── utils          # Helper functions
+│   │   ├── components       # Reusable UI components & feature widgets
+│   │   ├── pages            # Application pages
+│   │   ├── routes           # Route definitions
+│   │   ├── services         # API communication (Axios instance)
+│   │   ├── store            # Global state management (Zustand stores)
+│   │   ├── hooks            # Custom React hooks
+│   │   ├── context          # React contexts (ThemeContext)
+│   │   └── utils            # Helper functions (Custom semantic showToast utility)
 │   │
 │   ├── package.json
 │   └── vite.config.ts
 │
-├── screenshots            # Application screenshots
+├── screenshots              # Application light/dark mode screenshots
 │
 └── README.md
 ```
