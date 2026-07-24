@@ -2,7 +2,7 @@ import express, { Application } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
-import morgan from 'morgan';
+import { morganMiddleware } from './middlewares/morgan.middleware';
 import mongoSanitize from 'express-mongo-sanitize';
 import hpp from 'hpp';
 import { errorHandler } from './middlewares/error.middleware';
@@ -25,7 +25,7 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 app.use(compression());
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
-app.use(morgan('dev'));
+app.use(morganMiddleware);
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'success', message: 'API is running optimally' });

@@ -23,9 +23,23 @@ export const errorHandler = (
     message = 'Duplicate field value entered';
   }
 
-  // Log non-operational errors (e.g., unexpected bugs)
-  if (!(err instanceof AppError)) {
-    logger.error(`[UNHANDLED ERROR] ${err.name}: ${err.message}`, err);
+  // 1. Gather context about the request that caused the crash
+  const reqContext = {
+    method: req.method,
+    path: req.originalUrl,
+    ip: req.ip,
+    // Safely log the body, ensuring we NEVER log user passwords to a file
+    body: req.body?.password ? { ...req.body, password: '[REDACTED]' } : req.body,
+    userId: req.user ? req.user._id : 'Unauthenticated',
+  };
+
+  // 2. Log strategically based on severity
+  if (statusCode >= 500) {
+    // Satisfy TS with err.message, but pass the stack in the metadata!
+    logger.error(err.message, { ...reqContext, stack: err.stack });
+  } else {
+    // 4xx errors are operational, log them as warnings to keep an eye on bad traffic
+    logger.warn(`[${statusCode}] ${message}`, reqContext);
   }
 
   res.status(statusCode).json({
