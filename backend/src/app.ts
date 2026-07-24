@@ -7,6 +7,7 @@ import mongoSanitize from 'express-mongo-sanitize';
 import hpp from 'hpp';
 import { errorHandler } from './middlewares/error.middleware';
 import { AppError } from './utils/AppError';
+import path from 'path';
 
 // Routes
 import authRoutes from './routes/auth.routes';
@@ -19,6 +20,7 @@ app.use(helmet());
 app.use(cors({ origin: '*', credentials: true }));
 app.use(mongoSanitize());
 app.use(hpp());
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 app.use(compression());
 app.use(express.json({ limit: '10kb' }));
