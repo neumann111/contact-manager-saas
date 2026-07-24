@@ -16,36 +16,39 @@ Contact Manager is a full-stack, enterprise-ready application designed to stream
 
 ## ✨ Features
 
-- 🔐 Secure JWT Authentication
-- 👤 User Profiles with Avatar Upload
-- 📇 Complete Contact Management (CRUD)
-- 🏷 Category Management
-- ⭐ Favorite Contacts
-- 🔍 Instant Search
-- 🎯 Category & Favorite Filters
-- 📄 CSV Import & Export
-- 📈 Dashboard Analytics
-- 🌙 Light & Dark Mode
-- 📱 Fully Responsive Design
-- 🔒 Password Reset via Email
-- 📦 Data Portability
+- 🔐 **Secure JWT Authentication:** Stateless token-based auth with access and refresh tokens.
+- 👤 **User Profiles with Avatar Upload:** Custom profile management supporting image uploads and secure credential updates.
+- 📇 **Complete Contact Management (CRUD):** Full create, read, update, and delete capabilities with duplicate phone/email protection.
+- 🏷 **Category Management:** Organize contacts dynamically using custom tags and groups.
+- ⭐ **Favorite Contacts:** Quickly star and filter your most important network connections.
+- 🔍 **Instant Search:** Real-time query matching across names, emails, companies, and phone numbers.
+- 🎯 **Category & Favorite Filters:** Granular filtering options to sort through your directory effortlessly.
+- 📄 **CSV Import & Export:** Bulk data portability supporting seamless migration and backup.
+- 📈 **Dashboard Analytics:** Aggregated insights tracking total counts, favorites, and recent activity metrics.
+- 🌙 **Light & Dark Mode:** Fully persistent theme switching with customized design tokens.
+- 📱 **Fully Responsive Design:** Optimized layouts providing a native-like experience across mobile, tablet, and desktop viewports.
+- 🔒 **Password Reset via Email:** Secure tokenized workflows for seamless account recovery.
+- 📦 **Robust Logging & Error Handling:** Winston-powered backend logging with Morgan HTTP request tracking and structured JSON error responses.
+
+---
 
 ## 🛠️ Technology Stack
 
 | Technology | Purpose / Implementation in Project |
 |------------|---------|
-| **React 18** | Core frontend UI library utilizing functional components and hooks. |
+| **React 18** | Core frontend UI library utilizing functional components and custom hooks. |
 | **TypeScript** | End-to-end type safety for props, state, API responses, and database schemas. |
 | **Vite** | Next-generation frontend build tool for instant server start and HMR. |
-| **Tailwind CSS** | Utility-first styling powering the custom CSS variables and design tokens. |
+| **Tailwind CSS** | Utility-first styling powering the custom CSS variables and semantic design tokens. |
 | **Zustand** | Lightweight, scalable global state management (`authStore`, `contactStore`, `categoryStore`). |
-| **React Router** | Client-side routing with specialized `<ProtectedRoute />` wrapper components. |
-| **Axios** | HTTP client handling API requests, interceptors, and token injection. |
-| **React Hot Toast** | Notification system wrapped in a custom semantic utility for dark-mode support. |
-| **Lucide React** | Clean, consistent, and customizable SVG iconography. |
-| **Node.js & Express** | High-performance backend API serving RESTful endpoints. |
-| **MongoDB / Mongoose** | NoSQL database for flexible data modeling and relationship management. |
-| **JWT** | Secure, stateless JSON Web Tokens for authentication and session handling. |
+| **React Router** | Client-side routing with specialized `<ProtectedRoute />` and `<PublicRoute />` wrappers. |
+| **Axios** | HTTP client handling API requests, automatic token injection, and response error formatting. |
+| **React Hot Toast** | Notification engine wrapped in a custom semantic utility (`showToast.tsx`) for native dark-mode support. |
+| **Lucide React** | Clean, consistent, and customizable SVG iconography across the UI shell. |
+| **Node.js & Express** | High-performance backend API serving secure RESTful endpoints. |
+| **MongoDB / Mongoose** | NoSQL database for flexible data modeling, validation schemas, and relationship indexing. |
+| **JWT (jsonwebtoken)** | Secure, stateless authentication via short-lived access tokens and refresh tokens. |
+| **Winston & Morgan** | Production-grade logging system capturing stack traces, error contexts, and real-time HTTP request performance. |
 
 ## 🏗️ Architecture & Technical Documentation
 
