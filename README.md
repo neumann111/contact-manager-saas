@@ -29,7 +29,7 @@ Contact Manager is a full-stack, enterprise-ready application designed to stream
 - 📱 **Fully Responsive Design:** Optimized layouts providing a native-like experience across mobile, tablet, and desktop viewports.
 - 🔒 **Password Reset via Email:** Secure tokenized workflows for seamless account recovery.
 - 📦 **Robust Logging & Error Handling:** Winston-powered backend logging with Morgan HTTP request tracking and structured JSON error responses.
-- 🛡️ **Advanced Rate Limiting:** Tiered IP-based rate limiting via `express-rate-limit` to protect authentication and API endpoints against brute-force and DoS attacks.
+- 🛡️ Security Middleware: Helmet security headers, CORS configuration, and Express Rate Limit protect the API against common web attacks, unauthorized cross-origin requests, brute-force attempts, and DoS attacks.
 ---
 
 ## 🛠️ Technology Stack
@@ -49,11 +49,13 @@ Contact Manager is a full-stack, enterprise-ready application designed to stream
 | **MongoDB / Mongoose** | NoSQL database for flexible data modeling, validation schemas, and relationship indexing. |
 | **JWT (jsonwebtoken)** | Secure, stateless authentication via short-lived access tokens and refresh tokens. |
 | **Winston & Morgan** | Production-grade logging system capturing stack traces, error contexts, and real-time HTTP request performance. |
+| **Helmet** | Secures the application by setting HTTP security headers against common web vulnerabilities. |
+| **CORS** | Controls cross-origin access, allowing only trusted frontend applications to communicate with the API. |
 | **Express Rate Limit** | IP-based request throttling protecting authentication and general API endpoints from brute-force and flood attacks. |
 
 ## 🏗️ Architecture & Technical Documentation
 
-### Frontend Architecture
+## 🖥️ Frontend Architecture
 * **Component-Based Design:** UI elements are strictly segregated into reusable primitives (`src/components/ui/`) and feature-specific components (`src/components/contacts/`).
 * **State Management:** Global state is handled exclusively via **Zustand**. Business logic, API calls, and loading states are encapsulated within stores (`authStore`, `contactStore`, `categoryStore`), keeping React components incredibly clean and declarative.
 * **Routing Structure:** Implemented via `react-router-dom`. The `AppRoutes.tsx` acts as the traffic controller, wrapping sensitive routes in a `<ProtectedRoute />` that verifies JWT validity before rendering.
@@ -64,6 +66,67 @@ Contact Manager is a full-stack, enterprise-ready application designed to stream
 * **Theme System:** Managed by `ThemeContext.tsx`, which persists user preference to `localStorage` and toggles a `.dark` class directly on the `<html>` root node.
 * **Semantic CSS Variables:** `index.css` defines strict semantic color tokens (`--color-surface`, `--color-text`, `--color-brand-500`) that automatically swap hex codes based on the active theme mode.
 * **Custom Notification Engine:** Uses `react-hot-toast` heavily customized via `showToast.tsx` to inject semantic CSS variables dynamically, ensuring toasts perfectly match the active Light/Dark theme.
+
+## ⚙️ Backend Architecture
+
+The backend follows a **layered, modular architecture** built with **Node.js, Express, TypeScript, and MongoDB**, promoting clean separation of concerns and long-term maintainability.
+
+### 🏗️ Request Flow
+
+```text
+Client (Frontend / Postman)
+   │
+   ▼
+1. Global Middlewares (Helmet, CORS, Morgan Logger, JSON Body Parser)
+   │
+   ▼
+2. Global Rate Limiter (The /api apiLimiter)
+   │
+   ▼
+3. Express Router (Matches the specific route URL)
+   │
+   ├─► Public Route (e.g. /login)
+   │      │
+   │      ├─► Auth Rate Limiter
+   │      ├─► Request Validation
+   │      └─► Controller
+   │
+   └─► Protected Route (e.g. /contacts)
+          │
+          ├─► JWT Authentication
+          ├─► File Upload Middleware (when required)
+          ├─► Request Validation
+          └─► Controller
+                 │
+                 ▼
+4. Business Logic
+                 │
+                 ▼
+5. MongoDB (Mongoose Models)
+                 │
+      ┌──────────┴──────────┐
+      │                     │
+      ▼                     ▼
+ Success               Exception/Error
+      │                     │
+      ▼                     ▼
+JSON Response      Global Error Middleware
+                          │
+                          ├─► Winston Logging (error.log)
+                          └─► Standardized JSON Error Response sent to Client
+```
+
+### 📦 Architecture Layers
+
+| Layer | Responsibility |
+|-------|----------------|
+| **Config** | Environment variables and MongoDB connection setup. |
+| **Routes** | Define REST endpoints and compose middleware. |
+| **Middlewares** | JWT authentication, validation, rate limiting, logging, and centralized error handling. |
+| **Controllers** | Handle requests and coordinate application logic. |
+| **Models** | Mongoose schemas, validation rules, and database operations. |
+| **Validations** | Request payload validation before controller execution. |
+| **Utils** | Shared helpers including Winston logger and custom error utilities. |
 
 ## 🚀 Getting Started
 
@@ -92,10 +155,23 @@ npm install
 Create a `.env` file inside `backend`:
 
 ```env
+# Server
+NODE_ENV=development
 PORT=5000
+
+# Frontend URL (CORS)
+CLIENT_URL=http://localhost:3000
+
+# Database
 MONGODB_URI=mongodb://localhost:27017/contact_manager
+
+# Authentication
 JWT_SECRET=your_super_secret_jwt_key
-JWT_EXPIRES_IN=7d
+JWT_EXPIRES_IN=1h
+
+# Refresh Token
+JWT_REFRESH_SECRET=your_super_secret_refresh_key
+JWT_REFRESH_EXPIRES_IN=7d
 ```
 
 Start the backend:
@@ -128,9 +204,9 @@ npm run dev
 ### 4. Local URLs
 
 | Service | URL |
-|---|---|
-| Frontend | http://localhost:5173 |
-| Backend API | http://localhost:5000 |
+|----------|-----|
+| Frontend | http://localhost:3000 |
+| Backend Server | http://localhost:5000 |
 
 ## 📂 Project Structure
 
